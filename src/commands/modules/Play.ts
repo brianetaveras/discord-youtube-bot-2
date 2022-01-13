@@ -8,7 +8,7 @@ export default class Play implements BaseCommand {
 	register() {
 		return new SlashCommandBuilder()
 			.setName('play')
-			.setDescription("If the bot is in the voice chat, it will enqueue the song, if it's not, it will join the chat and play")
+			.setDescription("Plays song if bot is not active, otherwise enqueues the song.")
 			.addStringOption(option =>
 				option.setName('query').setDescription('A search query. First result from the search query will be used.').setRequired(true)
 			);
