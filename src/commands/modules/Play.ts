@@ -8,7 +8,7 @@ export default class Play implements BaseCommand {
 	register() {
 		return new SlashCommandBuilder()
 			.setName('play')
-			.setDescription('If the bot is not busy, you can play something. Then it will continue the queue.')
+			.setDescription("If the bot is in the voice chat, it will enqueue the song, if it's not, it will join the chat and play")
 			.addStringOption(option =>
 				option.setName('query').setDescription('A search query. First result from the search query will be used.').setRequired(true)
 			);
@@ -21,9 +21,24 @@ export default class Play implements BaseCommand {
 	async runner(handler: CommandInteractionHelper) {
 		const query = handler.commandInteraction.options.getString('query', true);
 		const youtubeInterface = YouTubeInterface.fromGuild(handler.guild);
-
 		if (youtubeInterface.busy) {
-			await handler.editWithEmoji('I am busy!', ResponseEmojis.Danger);
+			const youtubeUrl = handler.commandInteraction.options.getString('url', true);
+			const youtubeVideo = YouTubeVideo.fromUrl(youtubeUrl);
+			const title = await youtubeVideo.info<string>('.videoDetails.title');
+
+			if (!title) {
+				await handler.editWithEmoji(
+					'I could not add that item to the queue. Is it a valid URL? Is it age restricted or private?',
+					ResponseEmojis.Danger
+				);
+				return;
+			}
+
+			const appended = await youtubeInterface.queue.add(youtubeVideo.id);
+
+			if (appended) await handler.editWithEmoji(`Enqueued \`${title}\`.`, ResponseEmojis.Success);
+			else await handler.editWithEmoji('I could not add that item to the queue. Is it a valid URL?', ResponseEmojis.Danger);
+		
 			return;
 		}
 
