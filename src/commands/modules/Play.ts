@@ -3,6 +3,7 @@ import { CommandInteractionHelper, YouTubeInterface, YouTubeVideo } from 'bot-cl
 import { ResponseEmojis } from 'bot-config';
 import { BaseCommand } from '../BaseCommand';
 import { command } from '../decorators/command';
+import Enqueue from './Enqueue';
 
 export default class Play implements BaseCommand {
 	register() {
@@ -22,8 +23,14 @@ export default class Play implements BaseCommand {
 		const query = handler.commandInteraction.options.getString('query', true);
 		const youtubeInterface = YouTubeInterface.fromGuild(handler.guild);
 		if (youtubeInterface.busy) {
-			const youtubeUrl = handler.commandInteraction.options.getString('url', true);
-			const youtubeVideo = YouTubeVideo.fromUrl(youtubeUrl);
+			const [video] = await YouTubeVideo.search(query, 1);
+
+			if (!video?.id?.videoId) {
+				await handler.editWithEmoji('I could not find a video. Try something less specific?', ResponseEmojis.Danger);
+				return;
+			}
+
+			const youtubeVideo = YouTubeVideo.fromId(video.id.videoId);
 			const title = await youtubeVideo.info<string>('.videoDetails.title');
 
 			if (!title) {

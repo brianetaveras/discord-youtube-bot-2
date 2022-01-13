@@ -18,7 +18,7 @@ export default class Enqueue implements BaseCommand {
 	})
 	async runner(handler: CommandInteractionHelper) {
 		const youtubeInterface = YouTubeInterface.fromGuild(handler.guild);
-		const youtubeUrl = handler.commandInteraction.options.getString('url', true);
+		const youtubeUrl = handler.commandInteraction.options.getString('url', true) || handler.commandInteraction.options.getString('query', true); 
 		const youtubeVideo = YouTubeVideo.fromUrl(youtubeUrl);
 		const title = await youtubeVideo.info<string>('.videoDetails.title');
 
